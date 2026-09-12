@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>User Analytics Demo</title>
+</head>
+
+<body>
+
+    <h1>User Analytics Demo</h1>
+
+    <!-- Button -->
+    <section>
+        <h2>Button</h2>
+
+        <button id="buy-button">
+            Buy
+        </button>
+    </section>
+
+
+    <!-- Text input -->
+    <section>
+        <h2>Text input</h2>
+
+        <label for="username">
+            Username:
+        </label>
+
+        <input
+            id="username"
+            type="text"
+            placeholder="Enter your username"
+        >
+    </section>
+
+
+    <!-- Slider -->
+    <section>
+        <h2>Slider</h2>
+
+        <label for="volume">
+            Volume:
+        </label>
+
+        <input
+            id="volume"
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+        >
+
+        <span id="volume-value">50</span>
+    </section>
+
+
+    <!-- Checkbox -->
+    <section>
+        <h2>Checkbox</h2>
+
+        <label>
+            <input
+                id="notifications"
+                type="checkbox"
+            >
+
+            Enable notifications
+        </label>
+    </section>
+
+
+    <!-- Radio buttons -->
+    <section>
+        <h2>Radio buttons</h2>
+
+        <label>
+            <input
+                type="radio"
+                name="language"
+                value="english"
+            >
+
+            English
+        </label>
+
+        <label>
+            <input
+                type="radio"
+                name="language"
+                value="russian"
+            >
+
+            Russian
+        </label>
+    </section>
+
+
+    <!-- Dropdown -->
+    <section>
+        <h2>Dropdown</h2>
+
+        <label for="country">
+            Country:
+        </label>
+
+        <select id="country">
+
+            <option value="uk">
+                United Kingdom
+            </option>
+
+            <option value="germany">
+                Germany
+            </option>
+
+            <option value="armenia">
+                Armenia
+            </option>
+
+            <option value="other">
+                Other
+            </option>
+
+        </select>
+    </section>
+
+
+    <script src="app.js"></script>
+
+</body>
+</html>
