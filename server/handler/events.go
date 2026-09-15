@@ -2,12 +2,23 @@ package handler
 
 import (
 	"analytic_project/model"
+	"analytic_project/service"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-func EventsHandler(w http.ResponseWriter, r *http.Request) {
+type EventsHandler struct {
+	service *service.EventService
+}
+
+func NewEventHandler(service *service.EventService) *EventsHandler {
+	return &EventsHandler{
+		service: service,
+	}
+}
+
+func (h *EventsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := validateHTTPHeader(w, r); err != nil {
 		fmt.Println("Header error:", err)
 		return
@@ -20,6 +31,12 @@ func EventsHandler(w http.ResponseWriter, r *http.Request) {
 	event, err := validateHTTPBody(w, r)
 	if err != nil {
 		fmt.Println("Body error:", err)
+		return
+	}
+
+	err = h.service.Process(event)
+	if err != nil {
+		http.Error(w, "Failed to process event", http.StatusInternalServerError)
 		return
 	}
 
