@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS event_statistics (
+  id BIGSERIAL PRIMARY KEY,
+  window_start TIMESTAMPTZ NOT NULL,
+  window_end TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
+  count BIGINT NOT NULL
+)
