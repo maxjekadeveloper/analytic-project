@@ -30,6 +30,8 @@ func (r *PostresRepository) Save(results []analytics.Result) error {
 				count
 			)
 			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (window_start, window_end, event_type)
+			DO NOTHING
 		`,
 			result.WindowStart,
 			result.WindowEnd,

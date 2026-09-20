@@ -46,12 +46,16 @@ func main() {
 		case event := <-eventsChan:
 			service.Process(event)
 		case <-ticker.C:
-			results := service.Flush(secs)
+			windowEnd := time.Now()
+			results := service.Snapshot()
+
 			err := repo.Save(results)
 			if err != nil {
 				fmt.Println("Failed to save statistics:", err)
 				continue
 			}
+
+			service.Reset(windowEnd)
 
 			fmt.Println("Statistics saved:", len(results))
 		}

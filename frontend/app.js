@@ -1,5 +1,6 @@
 function createEvent(eventType, elementId, value) {
     const event = {
+        event_id: crypto.randomUUID(),
         event_type: eventType,
         element_id: elementId,
         value: value,

@@ -6,6 +6,7 @@ import (
 )
 
 type Event struct {
+	EventID   string    `json:"event_id"`
 	EventType string    `json:"event_type"`
 	ElementID string    `json:"element_id"`
 	Value     any       `json:"value"`
@@ -14,6 +15,10 @@ type Event struct {
 
 func (e Event) Validate() error {
 	err := error(nil)
+
+	if e.EventID == "" {
+		err = fmt.Errorf("event_id is required")
+	}
 
 	if e.EventType == "" {
 		err = fmt.Errorf("event_type is required")

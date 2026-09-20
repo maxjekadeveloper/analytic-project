@@ -1,0 +1,2 @@
+ALTER TABLE event_statistics
+DROP CONSTRAINT event_statistics_window_event_unique

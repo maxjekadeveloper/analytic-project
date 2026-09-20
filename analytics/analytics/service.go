@@ -12,6 +12,7 @@ type Result struct {
 }
 
 type Event struct {
+	EventID   string    `json:"event_id"`
 	EventType string    `json:"event_type"`
 	ElementID string    `json:"element_id"`
 	Value     any       `json:"value"`
@@ -31,7 +32,7 @@ func (s *Service) Process(event Event) {
 	s.counts[event.EventType]++
 }
 
-func (s *Service) Flush(secs int) []Result {
+func (s *Service) Snapshot() []Result {
 	windowEnd := time.Now()
 	results := make([]Result, 0, len(s.counts))
 
@@ -44,8 +45,10 @@ func (s *Service) Flush(secs int) []Result {
 		})
 	}
 
+	return results
+}
+
+func (s *Service) Reset(windowEnd time.Time) {
 	s.counts = make(map[string]int)
 	s.windowStart = windowEnd
-
-	return results
 }
