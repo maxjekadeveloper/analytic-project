@@ -16,7 +16,7 @@ import (
 const databaseURL = "postgres://analytics:analytics@localhost:5432/analytics?sslmode=disable"
 
 func main() {
-	db, err := repository.NewPostgres()
+	db, err := repository.NewPostgresConnection()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,6 +35,8 @@ func main() {
 	defer ticker.Stop()
 
 	service := analytics.NewService()
+	eventRepo := repository.NewEventRepository(db)
+	processor := analytics.NewProcessor(db, eventRepo, service)
 
 	fmt.Println("Analytics service started")
 
@@ -44,7 +46,11 @@ func main() {
 	for {
 		select {
 		case event := <-eventsChan:
-			service.Process(event)
+			err := processor.Process(event)
+			if err != nil {
+				fmt.Println("Failed to process event:", err)
+				continue
+			}
 		case <-ticker.C:
 			windowEnd := time.Now()
 			results := service.Snapshot()
