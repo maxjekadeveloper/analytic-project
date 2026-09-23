@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -16,6 +19,9 @@ import (
 const databaseURL = "postgres://analytics:analytics@localhost:5432/analytics?sslmode=disable"
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	db, err := repository.NewPostgresConnection()
 	if err != nil {
 		log.Fatal(err)
@@ -41,11 +47,18 @@ func main() {
 	fmt.Println("Analytics service started")
 
 	eventsChan := make(chan analytics.Event)
-	go ReadFromKafka(eventsChan)
+	go ReadFromKafka(ctx, eventsChan)
 
-	for {
+	running := true
+	for running || eventsChan != nil {
 		select {
-		case event := <-eventsChan:
+		case <-ctx.Done():
+			running = false
+		case event, ok := <-eventsChan:
+			if !ok {
+				eventsChan = nil
+				continue
+			}
 			err := processor.Process(event)
 			if err != nil {
 				fmt.Println("Failed to process event:", err)
@@ -66,21 +79,29 @@ func main() {
 			fmt.Println("Statistics saved:", len(results))
 		}
 	}
+
+	//fmt.Println("Shutting down analytics service...")
+	fmt.Println("Analytics service stopped")
 }
 
-func ReadFromKafka(eventsChan chan analytics.Event) {
+func ReadFromKafka(ctx context.Context, eventsChan chan analytics.Event) {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     []string{"localhost:9092"},
 		Topic:       "user-events",
 		GroupID:     "analytics-service",
 		StartOffset: kafka.FirstOffset,
 	})
+	defer fmt.Println("Kafka reading is shutdown")
 	defer reader.Close()
 	defer close(eventsChan)
 
 	for {
-		message, err := reader.ReadMessage(context.Background())
+		message, err := reader.ReadMessage(ctx)
 		if err != nil {
+			if ctx.Err() != nil {
+				return
+			}
+
 			fmt.Println("Kafka error", err)
 			return
 		}
