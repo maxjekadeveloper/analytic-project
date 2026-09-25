@@ -7,8 +7,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func NewPostgresConnection() (*sqlx.DB, error) {
-	db, err := sqlx.Connect("pgx", "postgres://analytics:analytics@localhost:5432/analytics")
+func NewPostgresConnection(databaseURL string) (*sqlx.DB, error) {
+	db, err := sqlx.Connect("pgx", databaseURL)
 
 	if err != nil {
 		return nil, fmt.Errorf("connect to postgres: %w", err)

@@ -14,7 +14,8 @@ import (
 )
 
 func main() {
-	producer := kafka.NewProducer("localhost:9092", "user-events")
+	broker := os.Getenv("KAFKA_BROKER")
+	producer := kafka.NewProducer(broker, "user-events")
 	eventService := service.NewEventService(producer)
 	eventsHandler := handler.NewEventHandler(eventService)
 

@@ -16,13 +16,12 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-const databaseURL = "postgres://analytics:analytics@localhost:5432/analytics?sslmode=disable"
-
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	db, err := repository.NewPostgresConnection()
+	databaseURL := os.Getenv("DATABASE_URL")
+	db, err := repository.NewPostgresConnection(databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,8 +45,10 @@ func main() {
 
 	fmt.Println("Analytics service started")
 
+	broker := os.Getenv("KAFKA_BROKER")
+	fmt.Println("broker =", broker)
 	eventsChan := make(chan analytics.Event)
-	go ReadFromKafka(ctx, eventsChan)
+	go ReadFromKafka(ctx, broker, eventsChan)
 
 	running := true
 	for running || eventsChan != nil {
@@ -84,9 +85,9 @@ func main() {
 	fmt.Println("Analytics service stopped")
 }
 
-func ReadFromKafka(ctx context.Context, eventsChan chan analytics.Event) {
+func ReadFromKafka(ctx context.Context, broker string, eventsChan chan analytics.Event) {
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     []string{"localhost:9092"},
+		Brokers:     []string{broker},
 		Topic:       "user-events",
 		GroupID:     "analytics-service",
 		StartOffset: kafka.FirstOffset,

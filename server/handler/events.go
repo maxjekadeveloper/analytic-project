@@ -34,7 +34,7 @@ func (h *EventsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.Process(event)
+	err = h.service.PushToBroker(event)
 	if err != nil {
 		http.Error(w, "Failed to process event", http.StatusInternalServerError)
 		return

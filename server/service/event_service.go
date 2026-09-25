@@ -14,6 +14,6 @@ func NewEventService(producer EventProducer) *EventService {
 	return &EventService{producer: producer}
 }
 
-func (s *EventService) Process(event model.Event) error {
+func (s *EventService) PushToBroker(event model.Event) error {
 	return s.producer.Publish(event)
 }
