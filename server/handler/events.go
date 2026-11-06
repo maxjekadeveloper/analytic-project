@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type EventsHandler struct {
@@ -24,25 +26,25 @@ func (h *EventsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Request received")
-	fmt.Println("Method:", r.Method)
-	fmt.Println("Path:", r.URL.Path)
+	requestID := uuid.NewString()
+	fmt.Printf("[%s] Request received\n", requestID)
+	fmt.Printf("[%s] Method: %s\n", requestID, r.Method)
+	fmt.Printf("[%s] Path: %s\n", requestID, r.URL.Path)
 
 	event, err := validateHTTPBody(w, r)
 	if err != nil {
-		fmt.Println("Body error:", err)
+		fmt.Printf("[%s] Body error: %s\n", requestID, err)
 		return
 	}
 
 	err = h.service.PushToBroker(event)
 	if err != nil {
-		http.Error(w, "Failed to process event", http.StatusInternalServerError)
+		fmt.Printf("[%s] Failed to publish Kafka: %s\n", requestID, err)
+		http.Error(w, "Failed to publish Kafka", http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Printf("Event: %+v\n", event)
-	fmt.Fprintln(w, "Event received")
-
+	fmt.Printf("[%s] Event: %+v\n", requestID, event)
 	sendStatusOK(w)
 }
 
