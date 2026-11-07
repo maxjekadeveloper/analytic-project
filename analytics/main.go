@@ -35,7 +35,7 @@ func main() {
 	}
 	fmt.Println("Migrations completed")
 
-	const secs = 3
+	const secs = 30
 	ticker := time.NewTicker(secs * time.Second)
 	defer ticker.Stop()
 
@@ -77,11 +77,13 @@ func main() {
 
 			service.Reset(windowEnd)
 
-			fmt.Println("Statistics saved:", len(results))
+			size := len(results)
+			if size > 0 {
+				fmt.Println("Statistics saved:", len(results))
+			}
 		}
 	}
 
-	//fmt.Println("Shutting down analytics service...")
 	fmt.Println("Analytics service stopped")
 }
 
@@ -96,6 +98,7 @@ func ReadFromKafka(ctx context.Context, broker string, eventsChan chan analytics
 	defer reader.Close()
 	defer close(eventsChan)
 
+	var reTry byte = 20
 	for {
 		message, err := reader.ReadMessage(ctx)
 		if err != nil {
@@ -103,8 +106,22 @@ func ReadFromKafka(ctx context.Context, broker string, eventsChan chan analytics
 				return
 			}
 
-			fmt.Println("Kafka error", err)
-			return
+			if reTry == 0 {
+				return
+			}
+
+			reTry--
+			log.Println("Kafka error", err)
+			log.Println("Retrying in 1 second...")
+
+			timer := time.NewTimer(time.Second)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return
+			case <-timer.C:
+				continue
+			}
 		}
 
 		var event analytics.Event
