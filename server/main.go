@@ -1,20 +1,16 @@
 package main
 
 import (
-	"analytic_project/cache"
 	"analytic_project/handler"
 	"analytic_project/kafka"
 	"analytic_project/service"
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -41,30 +37,6 @@ func main() {
 
 		fmt.Println("Server stopped")
 	}()
-
-	rdb := cache.NewRedisCache("redis:6379", 0)
-	defer rdb.Close()
-
-	ctxTimeout, cancel := context.WithTimeout(ctxSIGTERM, 5*time.Second)
-	defer cancel()
-
-	if err := rdb.Ping(ctxTimeout); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Connected to Redis!")
-
-	err := rdb.Set(ctxSIGTERM, "analytics:clicks", 100, 30*time.Second)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	value, err := rdb.Get(ctxSIGTERM, "analytics:clicks")
-	if err == redis.Nil {
-		fmt.Println("No such key...")
-	} else if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Clicks:", value)
 
 	<-ctxSIGTERM.Done()
 

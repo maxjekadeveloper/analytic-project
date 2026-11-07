@@ -2,24 +2,27 @@ package repository
 
 import (
 	"analytics-service/analytics"
+	"analytics-service/statistics"
+	"context"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
 
-type PostresRepository struct {
+type StatisticsRepository struct {
 	db *sqlx.DB
 }
 
-func NewPostgresRepository(db *sqlx.DB) *PostresRepository {
-	return &PostresRepository{db: db}
+func NewStatisticsRepository(db *sqlx.DB) *StatisticsRepository {
+	return &StatisticsRepository{db: db}
 }
 
-func (r *PostresRepository) Save(results []analytics.Result) error {
+func (r *StatisticsRepository) Save(results []analytics.Result) error {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)
 	}
+	defer tx.Rollback()
 
 	for _, result := range results {
 		_, err := tx.Exec(`
@@ -40,7 +43,6 @@ func (r *PostresRepository) Save(results []analytics.Result) error {
 		)
 
 		if err != nil {
-			tx.Rollback()
 			return fmt.Errorf("save event statistic: %w", err)
 		}
 	}
@@ -51,3 +53,31 @@ func (r *PostresRepository) Save(results []analytics.Result) error {
 
 	return nil
 }
+
+func (r *StatisticsRepository) GetStats(ctx context.Context) ([]statistics.Statistics, error) {
+	var stats []statistics.Statistics
+	//var stats statistics.Statistics
+
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return stats, fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	query := `SELECT event_type, SUM(count) AS count 
+						FROM event_statistics 
+						GROUP BY event_type`
+
+	err = tx.SelectContext(ctx, &stats, query)
+	if err != nil {
+		return stats, fmt.Errorf("select event statistics: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return stats, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	return stats, nil
+}
+
+//SELECT event_type, SUM(count) FROM event_statistics GROUP BY event_type
