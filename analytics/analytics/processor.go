@@ -13,10 +13,10 @@ type EventRepository interface {
 type Processor struct {
 	db         *sqlx.DB
 	repository EventRepository
-	service    *Service
+	service    *StatisticsService
 }
 
-func NewProcessor(db *sqlx.DB, repository EventRepository, service *Service) *Processor {
+func NewProcessor(db *sqlx.DB, repository EventRepository, service *StatisticsService) *Processor {
 	return &Processor{db: db, repository: repository, service: service}
 }
 

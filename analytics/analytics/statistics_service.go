@@ -19,20 +19,20 @@ type Event struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-type Service struct {
+type StatisticsService struct {
 	counts      map[string]int
 	windowStart time.Time
 }
 
-func NewService() *Service {
-	return &Service{counts: make(map[string]int), windowStart: time.Now()}
+func NewService() *StatisticsService {
+	return &StatisticsService{counts: make(map[string]int), windowStart: time.Now()}
 }
 
-func (s *Service) Process(event Event) {
+func (s *StatisticsService) Process(event Event) {
 	s.counts[event.EventType]++
 }
 
-func (s *Service) Snapshot() []Result {
+func (s *StatisticsService) Snapshot() []Result {
 	windowEnd := time.Now()
 	results := make([]Result, 0, len(s.counts))
 
@@ -48,7 +48,7 @@ func (s *Service) Snapshot() []Result {
 	return results
 }
 
-func (s *Service) Reset(windowEnd time.Time) {
+func (s *StatisticsService) Reset(windowEnd time.Time) {
 	s.counts = make(map[string]int)
 	s.windowStart = windowEnd
 }

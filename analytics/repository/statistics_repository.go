@@ -56,7 +56,6 @@ func (r *StatisticsRepository) Save(results []analytics.Result) error {
 
 func (r *StatisticsRepository) GetStats(ctx context.Context) ([]statistics.Statistics, error) {
 	var stats []statistics.Statistics
-	//var stats statistics.Statistics
 
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {

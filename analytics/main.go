@@ -5,16 +5,17 @@ import (
 	"analytics-service/cache"
 	"analytics-service/migrations"
 	"analytics-service/repository"
+	"analytics-service/statistics_handler"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -29,7 +30,7 @@ func main() {
 	}
 	defer db.Close()
 	fmt.Println("Connected to PostgreSQL")
-	repo := repository.NewStatisticsRepository(db)
+	statisticsRepo := repository.NewStatisticsRepository(db)
 
 	err = migrations.Run(databaseURL)
 	if err != nil {
@@ -48,18 +49,21 @@ func main() {
 	}
 	fmt.Println("Connected to Redis!")
 
-	err = rdb.Set(ctxSIGTERM, "analytics:clicks", 100, 30*time.Second)
-	if err != nil {
-		log.Fatal(err)
-	}
+	cacheService := cache.NewCacheService(statisticsRepo, rdb)
+	statsHandler := statistics_handler.NewStatisticsHandler(ctxSIGTERM, cacheService)
+	mux := http.NewServeMux()
+	mux.Handle("/statistics", statsHandler)
+	server := &http.Server{Addr: ":3111", Handler: mux}
+	go func() {
+		fmt.Println("Statistics server started on :3111")
+		err := server.ListenAndServe()
 
-	value, err := rdb.Get(ctxSIGTERM, "analytics:clicks")
-	if err == redis.Nil {
-		fmt.Println("No such key...")
-	} else if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Clicks:", value)
+		if err != nil && err != http.ErrServerClosed {
+			fmt.Println("Server error", err)
+		}
+
+		fmt.Println("Server stopped")
+	}()
 
 	const secs = 30
 	ticker := time.NewTicker(secs * time.Second)
@@ -95,7 +99,7 @@ func main() {
 			windowEnd := time.Now()
 			results := service.Snapshot()
 
-			err := repo.Save(results)
+			err := statisticsRepo.Save(results)
 			if err != nil {
 				fmt.Println("Failed to save statistics:", err)
 				continue
