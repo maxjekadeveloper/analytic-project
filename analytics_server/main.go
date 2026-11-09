@@ -8,7 +8,6 @@ import (
 	"analytics_server/statistics_handler"
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -29,14 +28,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	fmt.Println("Connected to PostgreSQL")
+	log.Println("Connected to PostgreSQL")
 	statisticsRepo := repository.NewStatisticsRepository(db)
 
 	err = migrations.Run(databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Migrations completed")
+	log.Println("Migrations completed")
 
 	rdb := cache.NewRedisCache("redis:6379", 0)
 	defer rdb.Close()
@@ -47,7 +46,7 @@ func main() {
 	if err := rdb.Ping(ctxTimeout); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Connected to Redis!")
+	log.Println("Connected to Redis!")
 
 	cacheService := cache.NewCacheService(statisticsRepo, rdb)
 	statsHandler := statistics_handler.NewStatisticsHandler(ctxSIGTERM, cacheService)
@@ -55,14 +54,14 @@ func main() {
 	mux.Handle("/statistics", statsHandler)
 	server := &http.Server{Addr: ":3111", Handler: mux}
 	go func() {
-		fmt.Println("Statistics server started on :3111")
+		log.Println("Statistics server started on :3111")
 		err := server.ListenAndServe()
 
 		if err != nil && err != http.ErrServerClosed {
-			fmt.Println("Server error", err)
+			log.Println("Server error", err)
 		}
 
-		fmt.Println("Server stopped")
+		log.Println("Server stopped")
 	}()
 
 	const secs = 30
@@ -73,10 +72,10 @@ func main() {
 	eventRepo := repository.NewEventRepository(db)
 	processor := analytics.NewProcessor(db, eventRepo, service)
 
-	fmt.Println("Analytics service started")
+	log.Println("Analytics service started")
 
 	broker := os.Getenv("KAFKA_BROKER")
-	fmt.Println("broker =", broker)
+	log.Println("broker =", broker)
 	eventsChan := make(chan analytics.Event)
 	go ReadFromKafka(ctxSIGTERM, broker, eventsChan)
 
@@ -92,7 +91,7 @@ func main() {
 			}
 			err := processor.Process(event)
 			if err != nil {
-				fmt.Println("Failed to process event:", err)
+				log.Println("Failed to process event:", err)
 				continue
 			}
 		case <-ticker.C:
@@ -101,7 +100,7 @@ func main() {
 
 			err := statisticsRepo.Save(results)
 			if err != nil {
-				fmt.Println("Failed to save statistics:", err)
+				log.Println("Failed to save statistics:", err)
 				continue
 			}
 
@@ -109,12 +108,12 @@ func main() {
 
 			size := len(results)
 			if size > 0 {
-				fmt.Println("Statistics saved:", len(results))
+				log.Println("Statistics saved:", len(results))
 			}
 		}
 	}
 
-	fmt.Println("Analytics service stopped")
+	log.Println("Analytics service stopped")
 }
 
 func ReadFromKafka(ctxSIGTERM context.Context, broker string, eventsChan chan analytics.Event) {
@@ -124,7 +123,7 @@ func ReadFromKafka(ctxSIGTERM context.Context, broker string, eventsChan chan an
 		GroupID:     "analytics_server",
 		StartOffset: kafka.FirstOffset,
 	})
-	defer fmt.Println("Kafka reading is shutdown")
+	defer log.Println("Kafka reading is shutdown")
 	defer reader.Close()
 	defer close(eventsChan)
 
@@ -157,7 +156,7 @@ func ReadFromKafka(ctxSIGTERM context.Context, broker string, eventsChan chan an
 		var event analytics.Event
 		err = json.Unmarshal(message.Value, &event)
 		if err != nil {
-			fmt.Println("Invalid event:", err)
+			log.Println("Invalid event:", err)
 			continue
 		}
 

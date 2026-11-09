@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,24 +33,24 @@ func main() {
 	server := &http.Server{Addr: ":3000", Handler: mux}
 
 	go func() {
-		fmt.Println("Server started on :3000")
+		log.Println("Server started on :3000")
 		err := server.ListenAndServe()
 
 		if err != nil && err != http.ErrServerClosed {
-			fmt.Println("Server error", err)
+			log.Println("Server error", err)
 		}
 
-		fmt.Println("Server stopped")
+		log.Println("Server stopped")
 	}()
 
 	<-ctxSIGTERM.Done()
 
-	fmt.Println("Shutdown signal received")
+	log.Println("Shutdown signal received")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		fmt.Println("HTTP shutdown server error", err)
+		log.Println("HTTP shutdown server error", err)
 	}
 }
