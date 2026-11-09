@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"primary_server/client"
 	"primary_server/handler"
 	"primary_server/kafka"
 	"primary_server/service"
@@ -22,9 +23,13 @@ func main() {
 	eventService := service.NewEventService(producer)
 	eventsHandler := handler.NewEventHandler(eventService)
 
+	analyticsClient := client.NewAnalyticsClient("http://analytics-server:3111")
+	statisticsHandler := handler.NewStatisticsHandler(analyticsClient)
+
 	mux := http.NewServeMux()
-	mux.Handle("/events", eventsHandler)
 	mux.HandleFunc("/", handler.FrontendHandler)
+	mux.HandleFunc("/events", eventsHandler.PublishToMQ)
+	mux.HandleFunc("/statistics", statisticsHandler.GetStatistics)
 	server := &http.Server{Addr: ":3000", Handler: mux}
 
 	go func() {

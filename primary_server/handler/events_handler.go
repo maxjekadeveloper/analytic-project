@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"primary_server/model"
 	"primary_server/service"
@@ -20,38 +21,38 @@ func NewEventHandler(service *service.EventService) *EventsHandler {
 	}
 }
 
-func (h *EventsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *EventsHandler) PublishToMQ(w http.ResponseWriter, r *http.Request) {
 	if err := validateHTTPHeader(w, r); err != nil {
-		fmt.Println("Header error:", err)
+		log.Println("Header error:", err)
 		return
 	}
 
 	requestID := uuid.NewString()
-	fmt.Printf("[%s] Request received\n", requestID)
-	fmt.Printf("[%s] Method: %s\n", requestID, r.Method)
-	fmt.Printf("[%s] Path: %s\n", requestID, r.URL.Path)
+	log.Printf("[%s] Request received\n", requestID)
+	log.Printf("[%s] Method: %s\n", requestID, r.Method)
+	log.Printf("[%s] Path: %s\n", requestID, r.URL.Path)
 
 	event, err := validateHTTPBody(w, r)
 	if err != nil {
-		fmt.Printf("[%s] Body error: %s\n", requestID, err)
+		log.Printf("[%s] Body error: %s\n", requestID, err)
 		return
 	}
 
 	err = h.service.PushToBroker(event)
 	if err != nil {
-		fmt.Printf("[%s] Failed to publish Kafka: %s\n", requestID, err)
+		log.Printf("[%s] Failed to publish Kafka: %s\n", requestID, err)
 		http.Error(w, "Failed to publish Kafka", http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Printf("[%s] Event: %+v\n", requestID, event)
+	log.Printf("[%s] Event: %+v\n", requestID, event)
 	sendStatusOK(w)
 }
 
 func validateHTTPHeader(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodPost && r.Method != http.MethodGet {
-		fmt.Println("Method:", r.Method)
-		fmt.Println("Path:", r.URL.Path)
+		log.Println("Method:", r.Method)
+		log.Println("Path:", r.URL.Path)
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return fmt.Errorf("Method is not allowed")
 	}
@@ -70,12 +71,12 @@ func validateHTTPBody(w http.ResponseWriter, r *http.Request) (model.Event, erro
 	err := json.NewDecoder(r.Body).Decode(&event)
 
 	if err != nil {
-		fmt.Println("JSON decode error:", err)
+		log.Println("JSON decode error:", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 	}
 
 	if err = event.Validate(); err != nil {
-		fmt.Println("Validation error:", err)
+		log.Println("Validation error:", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
@@ -87,5 +88,8 @@ func sendStatusOK(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusAccepted)
 
 	response := map[string]string{"status": "accepted"}
-	json.NewEncoder(w).Encode(response)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Printf("failed to answer frontend: %v", err)
+	}
 }
