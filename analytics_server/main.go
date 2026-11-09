@@ -1,11 +1,11 @@
 package main
 
 import (
-	"analytics-service/analytics"
-	"analytics-service/cache"
-	"analytics-service/migrations"
-	"analytics-service/repository"
-	"analytics-service/statistics_handler"
+	"analytics_server/analytics"
+	"analytics_server/cache"
+	"analytics_server/migrations"
+	"analytics_server/repository"
+	"analytics_server/statistics_handler"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -121,7 +121,7 @@ func ReadFromKafka(ctxSIGTERM context.Context, broker string, eventsChan chan an
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     []string{broker},
 		Topic:       "user-events",
-		GroupID:     "analytics-service",
+		GroupID:     "analytics_server",
 		StartOffset: kafka.FirstOffset,
 	})
 	defer fmt.Println("Kafka reading is shutdown")

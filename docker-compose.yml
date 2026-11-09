@@ -55,11 +55,11 @@ services:
       timeout: 3s
       retries: 5    
 
-  server:
+  primary_server:
     build:
       context: .
-      dockerfile: server/Dockerfile
-    container_name: analytics-server
+      dockerfile: primary_server/Dockerfile
+    container_name: primary-server
     ports:
       - "3000:3000"
     environment:
@@ -68,12 +68,12 @@ services:
       kafka:
         condition: service_healthy
 
-  analytics:
+  analytics_server:
     build:
       context: .
-      dockerfile: analytics/Dockerfile
+      dockerfile: analytics_server/Dockerfile
 
-    container_name: analytics-service
+    container_name: analytics-server
 
     environment:
       KAFKA_BROKER: kafka:29092

@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"analytics-service/statistics"
+	"analytics_server/statistics"
 	"context"
 	"encoding/json"
 	"log"

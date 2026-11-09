@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"analytics-service/analytics"
+	"analytics_server/analytics"
 	"encoding/json"
 	"fmt"
 

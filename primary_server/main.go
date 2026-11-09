@@ -1,14 +1,14 @@
 package main
 
 import (
-	"analytic_project/handler"
-	"analytic_project/kafka"
-	"analytic_project/service"
 	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"primary_server/handler"
+	"primary_server/kafka"
+	"primary_server/service"
 	"syscall"
 	"time"
 )

@@ -1,7 +1,7 @@
 package statistics_handler
 
 import (
-	"analytics-service/cache"
+	"analytics_server/cache"
 	"context"
 	"encoding/json"
 	"log"

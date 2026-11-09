@@ -1,6 +1,6 @@
 package service
 
-import "analytic_project/model"
+import "primary_server/model"
 
 type EventProducer interface {
 	Publish(event model.Event) error

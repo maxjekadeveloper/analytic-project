@@ -1,9 +1,9 @@
 package kafka
 
 import (
-	"analytic_project/model"
 	"context"
 	"encoding/json"
+	"primary_server/model"
 
 	"github.com/segmentio/kafka-go"
 )

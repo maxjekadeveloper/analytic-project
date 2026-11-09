@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"analytic_project/model"
-	"analytic_project/service"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"primary_server/model"
+	"primary_server/service"
 
 	"github.com/google/uuid"
 )

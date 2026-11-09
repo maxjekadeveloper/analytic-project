@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"analytics-service/analytics"
-	"analytics-service/statistics"
+	"analytics_server/analytics"
+	"analytics_server/statistics"
 	"context"
 	"fmt"
 
