@@ -23,7 +23,7 @@ func main() {
 	eventService := service.NewEventService(producer)
 	eventsHandler := handler.NewEventHandler(eventService)
 
-	analyticsClient := client.NewAnalyticsClient("http://analytics-server:3111")
+	analyticsClient := client.NewAnalyticsClient("http://analytics_server:3111")
 	statisticsHandler := handler.NewStatisticsHandler(analyticsClient)
 
 	mux := http.NewServeMux()

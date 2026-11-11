@@ -51,7 +51,7 @@ func main() {
 	cacheService := cache.NewCacheService(statisticsRepo, rdb)
 	statsHandler := statistics_handler.NewStatisticsHandler(ctxSIGTERM, cacheService)
 	mux := http.NewServeMux()
-	mux.Handle("/statistics", statsHandler)
+	mux.HandleFunc("/statistics", statsHandler.GetStatistics)
 	server := &http.Server{Addr: ":3111", Handler: mux}
 	go func() {
 		log.Println("Statistics server started on :3111")

@@ -78,5 +78,3 @@ func (r *StatisticsRepository) GetStats(ctx context.Context) ([]statistics.Stati
 
 	return stats, nil
 }
-
-//SELECT event_type, SUM(count) FROM event_statistics GROUP BY event_type

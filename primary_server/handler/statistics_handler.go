@@ -15,12 +15,18 @@ func NewStatisticsHandler(analyticsClient *client.AnalyticsClient) *StatisticsHa
 }
 
 func (s *StatisticsHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request received")
+	log.Printf("Method: %s\n", r.Method)
+	log.Printf("Path: %s\n", r.URL.Path)
+	log.Println("Getting statistics...")
 	data, err := s.analyticsClient.GetStatistics(r.Context())
 	if err != nil {
 		log.Printf("error of getting statistics: %v\n", err)
 		http.Error(w, "failed to get statistics", http.StatusBadGateway)
 		return
 	}
+	log.Println("We got statistics :D")
+	log.Printf("Statistics: %+v\n", data)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

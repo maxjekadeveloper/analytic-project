@@ -26,12 +26,14 @@ func (c *CacheService) GetStats(ctx context.Context) ([]statistics.Statistics, e
 	const ttl = time.Minute
 
 	// 1. Проверяем Redis
+	log.Println("Getting statistics from Redis...")
 	value, err := c.cache.Get(ctx, key) // value is string
 	if err == nil {
 		var stats []statistics.Statistics
 		err = json.Unmarshal([]byte(value), &stats)
 		if err == nil {
 			log.Println("Cache HIT")
+			log.Printf("Statistics: %+v\n", stats)
 			return stats, nil
 		}
 	}
@@ -39,10 +41,12 @@ func (c *CacheService) GetStats(ctx context.Context) ([]statistics.Statistics, e
 	log.Println("Cache MISS")
 
 	// 2. Получаем данные из PostgreSQL
+	log.Println("Getting statistics from PostgreSQL...")
 	stats, err := c.repo.GetStats(ctx)
 	if err != nil {
 		return []statistics.Statistics{}, err
 	}
+	log.Printf("Statistics: %+v\n", stats)
 
 	// 3. Сериализуем структуру
 	data, err := json.Marshal(stats)

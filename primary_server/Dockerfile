@@ -2,23 +2,23 @@ FROM golang:1.26 AS builder
 
 WORKDIR /src
 
-COPY server/go.mod server/go.sum ./server/
+COPY primary_server/go.mod primary_server/go.sum ./primary_server/
 
-WORKDIR /src/server
+WORKDIR /src/primary_server
 
 RUN go mod download
 
-COPY server/ .
+COPY primary_server/ .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /out/server .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/primary_server .
 
 
 FROM debian:bookworm-slim
 
 WORKDIR /app
 
-COPY --from=builder /out/server .
+COPY --from=builder /out/primary_server .
 
 COPY frontend /frontend
 
-CMD ["./server"]
+CMD ["./primary_server"]

@@ -17,7 +17,7 @@ func NewStatisticsHandler(ctx context.Context, cacheService *cache.CacheService)
 	return &StatisticsHandler{ctx: ctx, cacheService: cacheService}
 }
 
-func (s *StatisticsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *StatisticsHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
